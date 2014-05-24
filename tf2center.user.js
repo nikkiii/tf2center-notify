@@ -83,7 +83,11 @@ function loadNicknames() {
 
 function promptNicknames() {
 	var input = prompt('Please enter any nicknames you may have, separated by a comma.', nicknames.length > 0 ? nicknames.join(', ') : unsafeWindow.playerName);
-		
+	
+	if (!input) {
+		return;
+	}
+	
 	nicknames = input.split(',');
 	for (var i = 0; i < nicknames.length; i++) {
 		nicknames[i] = nicknames[i].trim();
