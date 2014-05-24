@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       TF2Center Notifications
 // @namespace  http://nikkii.us
-// @version    1.1
+// @version    1.2
 // @description  Adds ready and message notifications to TF2Center
 // @match      http://rc.tf2center.com/*
 // @copyright  2014+, Nikki
@@ -46,6 +46,10 @@ function startScript() {
 	// Load player name into a variable
 	unsafeWindow.playerName = $('.playerTopName').text();
 	notificationsEnabled = GM_getValue('enabled', true);
+	// Set notify settings
+	notify.config({
+		autoClose : TIMEOUT_MILLIS
+	});
 	// Hook and load stuff
 	loadNicknames();
 	hookReadyUp();
@@ -114,8 +118,7 @@ function hookReadyUp() {
 		if (notificationsEnabled) {
 			notify.createNotification('Ready up!', {
 				icon : TF2C_ICON,
-				body : 'Lobby is ready, ready up!',
-				timeout : TIMEOUT_MILLIS
+				body : 'Lobby is ready, ready up!'
 			});
 		}
 	};
@@ -131,10 +134,9 @@ function hookChatMessage() {
 		var obj = JSON.parse(json);
 		if (checkForName(obj.message)) {
 			if (notificationsEnabled) {
-				notify.createNotification('Message', {
+				notify.createNotification('TF2Center Message', {
 					icon : TF2C_ICON,
-					body : obj.authorName + ': ' + obj.message,
-					timeout : TIMEOUT_MILLIS
+					body : obj.authorName + ': ' + obj.message
 				});
 			}
 		}
