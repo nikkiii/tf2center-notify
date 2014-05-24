@@ -122,11 +122,14 @@ function hookChatMessage() {
 		}
 		
 		var obj = JSON.parse(json);
-		if (checkForName(obj.message)) {
+		if (checkForName(obj.message) && !isMySteamId(obj.authorSteamId)) {
 			if (notificationsEnabled) {
+				var $elem = $('<textarea />').html(obj.message);
+				var decoded = $elem.text();
+				$elem.remove();
 				notify.createNotification('TF2Center Message', {
 					icon : TF2C_ICON,
-					body : obj.authorName + ': ' + obj.message
+					body : obj.authorName + ': ' + decoded
 				});
 			}
 		}
