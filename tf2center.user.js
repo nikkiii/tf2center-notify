@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       TF2Center Notifications
 // @namespace  http://nikkii.us
-// @version    1.0
+// @version    1.1
 // @description  Adds ready and message notifications to TF2Center
 // @match      http://rc.tf2center.com/*
 // @copyright  2014+, Nikki
@@ -10,11 +10,16 @@
 BASE_PATH = 'http://cdn.probablyaserver.com/nikki/tf2c';
 NOTIFY_SCRIPT = BASE_PATH + '/desktop-notify-min.js';
 TF2C_ICON = BASE_PATH + '/tf2logo.png';
+TIMEOUT_MILLIS = 30000;
 
 nicknames = [ ];
 
+notificationsEnabled = true;
+
 // Add notify
 (function(){
+	// Immediately stop log spam
+	hookLogChange();
 	if (typeof unsafeWindow.notify == 'undefined') {
 		var headTag = document.getElementsByTagName('head')[0] || document.documentElement,
 			notifyTag = document.createElement('script');
@@ -38,20 +43,41 @@ function load_wait() {
 }
 
 function startScript() {
-	// Check permission level
+	// Load player name into a variable
+	unsafeWindow.playerName = $('.playerTopName').text();
+	notificationsEnabled = GM_getValue('enabled', true);
+	// Hook and load stuff
+	loadNicknames();
+	hookReadyUp();
+	hookChatMessage();
+	// Button to change notification permissions
+	addNotificationButton();
+}
+
+function addNotificationButton() {
+	$('.filterButtons').append('<div class="filterSwitch off" id="notifications"><button id="notificationBtn" class="btn size32x32 grey"><div class="icons grips vertical"></div></button><div class="filterSign">Notif. OFF</div></div>');
+	notificationPermissionsChanged();
+	$(document).on('click', '#notificationBtn', function(e) {
+		var perm = notify.permissionLevel();
+		if (perm != notify.PERMISSION_GRANTED) {
+			notify.requestPermission(notificationPermissionsChanged);
+		} else {
+			notificationsEnabled = !$('#notifications').hasClass('on');
+			console.log('Changed to ' + notificationsEnabled);
+			GM_setValue('enabled', notificationsEnabled);
+			notificationPermissionsChanged();
+		}
+	});
+}
+
+function notificationPermissionsChanged() {
 	var perm = notify.permissionLevel();
-	if (perm == notify.PERMISSION_DEFAULT) {
-		notify.requestPermission(startScript);
-	} else if (perm == notify.PERMISSION_DENIED) {
-		alert('You have denied permissions required for notifications. Please accept it to use this script.');
-	} else {
-		// Load player name into a variable
-		unsafeWindow.playerName = $('.playerTopName').text();
-		// Hook and load stuff
-		loadNicknames();
-		hookLogChange();
-		hookReadyUp();
-		hookChatMessage();
+	if (perm == notify.PERMISSION_GRANTED && notificationsEnabled) {
+		$('#notifications').removeClass('off').addClass('on');
+		$('#notifications .filterSign').text('Notif. ON');
+	} else if (!notificationsEnabled) {
+		$('#notifications').removeClass('on').addClass('off');
+		$('#notifications .filterSign').text('Notif. OFF');
 	}
 }
 
@@ -85,10 +111,13 @@ function hookReadyUp() {
 	var old = unsafeWindow.playReadySoundHeavy;
 	unsafeWindow.playReadySoundHeavy = function() {
 		old();
-		notify.createNotification('Ready up!', {
-			icon : TF2C_ICON,
-			body : 'Lobby is ready, ready up!'
-		});
+		if (notificationsEnabled) {
+			notify.createNotification('Ready up!', {
+				icon : TF2C_ICON,
+				body : 'Lobby is ready, ready up!',
+				timeout : TIMEOUT_MILLIS
+			});
+		}
 	};
 }
 
@@ -101,10 +130,13 @@ function hookChatMessage() {
 		
 		var obj = JSON.parse(json);
 		if (checkForName(obj.message)) {
-			notify.createNotification('Message', {
-				icon : TF2C_ICON,
-				body : obj.authorName + ': ' + obj.message
-			});
+			if (notificationsEnabled) {
+				notify.createNotification('Message', {
+					icon : TF2C_ICON,
+					body : obj.authorName + ': ' + obj.message,
+					timeout : TIMEOUT_MILLIS
+				});
+			}
 		}
 	};
 }
