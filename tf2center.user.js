@@ -21,26 +21,11 @@ notificationsEnabled = true;
 	// Immediately stop log spam
 	hookLogChange();
 	if (typeof unsafeWindow.notify == 'undefined') {
-		var headTag = document.getElementsByTagName('head')[0] || document.documentElement,
-			notifyTag = document.createElement('script');
-
-		notifyTag.src = NOTIFY_SCRIPT;
-		notifyTag.type = 'text/javascript';
-		notifyTag.async = true;
-
-		headTag.insertBefore(notifyTag, headTag.firstChild);
+		$.getScript(NOTIFY_SCRIPT, function() {
+			startScript();
+		});
 	}
-	load_wait();
 })();
-
-// Check if notify's loaded
-function load_wait() {
-	if (typeof unsafeWindow.notify == 'undefined') {
-		window.setTimeout(load_wait, 100);
-	} else {
-		startScript();
-	}
-}
 
 function startScript() {
 	// Load player name into a variable
