@@ -138,6 +138,9 @@ function hookChatMessage() {
 
 function checkForName(message) {
 	message = message.toLowerCase();
+	if (message.indexOf(unsafeWindow.playerName) != -1) {
+		return true;
+	}
 	for (var i = 0; i < nicknames.length; i++) {
 		if (message.indexOf(nicknames[i].toLowerCase()) != -1) {
 			return true;
