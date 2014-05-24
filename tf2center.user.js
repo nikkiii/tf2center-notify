@@ -108,7 +108,7 @@ function hookReadyUp() {
 		if (notificationsEnabled) {
 			notify.createNotification('Ready up!', {
 				icon : TF2C_ICON,
-				body : 'Lobby is ready, ready up!'
+				body : 'Lobby ' + $('.lobbyHeaderID').text() + ' is ready, ready up!'
 			});
 		}
 	};
