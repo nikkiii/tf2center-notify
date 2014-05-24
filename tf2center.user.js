@@ -59,7 +59,7 @@ function startScript() {
 }
 
 function addNotificationButton() {
-	$('.filterButtons').append('<div class="filterSwitch off" id="notifications"><button id="notificationBtn" class="btn size32x32 grey"><div class="icons grips vertical"></div></button><div class="filterSign">Notif. OFF</div></div>');
+	$('.filterButtons').append('<div style="height: 5px;"></div><div class="filterSwitch off" id="notifications"><button id="notificationBtn" class="btn size32x32 grey"><div class="icons grips vertical"></div></button><div class="filterSign">Notif. OFF</div></div><button class="btn size108x32 grey" id="nicknames">Nicknames</button>');
 	notificationPermissionsChanged();
 	$(document).on('click', '#notificationBtn', function(e) {
 		var perm = notify.permissionLevel();
@@ -71,6 +71,9 @@ function addNotificationButton() {
 			GM_setValue('enabled', notificationsEnabled);
 			notificationPermissionsChanged();
 		}
+	});
+	$(document).on('click', '#nicknames', function(e) {
+		promptNicknames();
 	});
 }
 
@@ -86,20 +89,22 @@ function notificationPermissionsChanged() {
 }
 
 function loadNicknames() {
-	var names = JSON.parse(GM_getValue('nicknames', '[]'));
+	nicknames = JSON.parse(GM_getValue('nicknames', '[]'));
 	
-	if (!names || !names.length) {
-		var input = prompt('Please enter any nicknames you may have, separated by a comma.', unsafeWindow.playerName);
+	if (!nicknames || !nicknames.length) {
+		promptNicknames();
+	}
+}
+
+function promptNicknames() {
+	var input = prompt('Please enter any nicknames you may have, separated by a comma.', nicknames.length > 0 ? nicknames.join(', ') : unsafeWindow.playerName);
 		
-		names = input.split(',');
-		for (var i = 0; i < names.length; i++) {
-			names[i] = names[i].trim();
-		}
-		
-		GM_setValue('nicknames', JSON.stringify(names));
+	nicknames = input.split(',');
+	for (var i = 0; i < nicknames.length; i++) {
+		nicknames[i] = nicknames[i].trim();
 	}
 	
-	nicknames = names;
+	GM_setValue('nicknames', JSON.stringify(nicknames));
 }
 
 function hookLogChange() {
