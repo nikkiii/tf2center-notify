@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       TF2Center Notifications
 // @namespace  http://nikkii.us
-// @version    0.1
+// @version    1.0
 // @description  Adds ready and message notifications to TF2Center
 // @match      http://rc.tf2center.com/*
 // @copyright  2014+, Nikki
