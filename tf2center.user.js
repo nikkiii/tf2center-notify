@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name       TF2Center Notifications
 // @namespace  http://nikkii.us
-// @version    1.2
+// @version    1.3
+// @author	   Nikki
 // @description  Adds ready and message notifications to TF2Center
 // @match      http://rc.tf2center.com/*
 // @copyright  2014+, Nikki
@@ -67,7 +68,7 @@ function notificationPermissionsChanged() {
 	if (perm == notify.PERMISSION_GRANTED && notificationsEnabled) {
 		$('#notifications').removeClass('off').addClass('on');
 		$('#notifications .filterSign').text('Notif. ON');
-	} else if (!notificationsEnabled) {
+	} else if (perm == notify.PERMISSION_DEFAULT || perm == notify.PERMISSION_DENIED || !notificationsEnabled) {
 		$('#notifications').removeClass('on').addClass('off');
 		$('#notifications .filterSign').text('Notif. OFF');
 	}
@@ -110,10 +111,7 @@ function hookReadyUp() {
 	unsafeWindow.playReadySoundHeavy = function() {
 		old();
 		if (notificationsEnabled) {
-			notify.createNotification('Ready up!', {
-				icon : TF2C_ICON,
-				body : 'Lobby ' + $('.lobbyHeaderID').text() + ' is ready, ready up!'
-			});
+			createNotification('Ready up!', 'Lobby ' + $('.lobbyHeaderID').text() + ' is ready, ready up!');
 		}
 	};
 }
@@ -126,15 +124,36 @@ function hookChatMessage() {
 		}
 		
 		var obj = JSON.parse(json);
-		if (checkForName(obj.message) && !isMySteamId(obj.authorSteamId)) {
+		if (obj.authorSteamId == 'TF2Center' && obj.authorName == 'TF2Center') {
+			// Internal message
 			if (notificationsEnabled) {
-				var $elem = $('<textarea />').html(obj.message);
-				var decoded = $elem.text();
-				$elem.remove();
-				notify.createNotification('TF2Center Message', {
-					icon : TF2C_ICON,
-					body : obj.authorName + ': ' + decoded
-				});
+				var lobbyId = $('.lobbyHeaderID').text();
+				if (obj.message == 'Lobby almost ready') {
+					createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' is almost ready!');
+				} else if (obj.message == 'Lobby open') {
+					createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' is open again.');
+				} else if (obj.message.indexOf('Leadership transfered to') == 0) {
+					var user = obj.message.substring(obj.message.indexOf('to') + 3);
+					if (user == unsafeWindow.playerName) {
+						createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' leadership has been transfered to you!');
+					} else {
+						createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' leadership has been transfered to ' + user + '.');
+					}
+				} else if (obj.message.indexOf('Lobby closed') == 0) {
+					var reason = obj.message.substring(obj.message.indexOf(':')+2);
+					
+					// Other reasons are:
+					// MATCH_ENDED - signifies that a match is complete (tf_game_over)
+					switch(reason) {
+					case 'MANUAL_LEADER':
+						createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' has been closed by the leader.');
+						break;
+					}
+				}
+			}
+		} else if (checkForName(obj.message) && !isMySteamId(obj.authorSteamId)) {
+			if (notificationsEnabled) {
+				createNotification('TF2Center Message', obj.authorName + ': ' + unescapeHtml(obj.message));
 			}
 		}
 	};
@@ -151,4 +170,18 @@ function checkForName(message) {
 		}
 	}
 	return false;
+}
+
+function unescapeHtml(html) {
+	var $elem = $('<textarea />').html(html);
+	var decoded = $elem.text();
+	$elem.remove();
+	return decoded;
+}
+
+function createNotification(title, body) {
+	notify.createNotification(title, {
+		icon : TF2C_ICON,
+		body : body
+	});
 }
