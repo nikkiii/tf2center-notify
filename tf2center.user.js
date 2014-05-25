@@ -138,15 +138,12 @@ function hookChatMessage() {
 					createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' is open again.');
 				} else if (obj.message.indexOf('Leadership transfered to') == 0) {
 					var user = obj.message.substring(obj.message.indexOf('to') + 3);
-					if (user == unsafeWindow.playerName) {
-						createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' leadership has been transfered to you!');
-					} else {
-						createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' leadership has been transfered to ' + user + '.');
-					}
+					createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' leadership has been transfered to ' + (user == unsafeWindow.playerName ? 'you!' : user  + '.'));
 				} else if (obj.message.indexOf('Lobby closed') == 0) {
 					var reason = obj.message.substring(obj.message.indexOf(':')+2);
 					
-					// Other reasons are:
+					// Reasons are:
+					// MANUAL_LEADER - signifies that the lobby was closed by the leader
 					// MATCH_ENDED - signifies that a match is complete (tf_game_over)
 					switch(reason) {
 					case 'MANUAL_LEADER':
@@ -156,6 +153,7 @@ function hookChatMessage() {
 				}
 			}
 		} else if (checkForName(obj.message) && !isMySteamId(obj.authorSteamId)) {
+			// Highlighted message
 			if (notificationsEnabled) {
 				createNotification('TF2Center Message', obj.authorName + ': ' + unescapeHtml(obj.message));
 			}
