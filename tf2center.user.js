@@ -29,8 +29,12 @@ notificationsEnabled = true;
 })();
 
 function startScript() {
+	var $nameElem = $('.playerTopName');
+	if ($nameElem.length < 1) {
+		return;
+	}
 	// Load player name into a variable
-	unsafeWindow.playerName = $('.playerTopName').text();
+	unsafeWindow.playerName = $nameElem.text();
 	notificationsEnabled = GM_getValue('enabled', true);
 	// Set notify settings
 	notify.config({
