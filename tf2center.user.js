@@ -127,36 +127,45 @@ function hookChatMessage() {
 			oldChatMsg(json);
 		}
 		
+		if (!notificationsEnabled) {
+			return;
+		}
+		
 		var obj = JSON.parse(json);
 		if (obj.authorSteamId == 'TF2Center' && obj.authorName == 'TF2Center') {
 			// Internal message
-			if (notificationsEnabled) {
-				var lobbyId = $('.lobbyHeaderID').text();
-				if (obj.message == 'Lobby almost ready') {
-					createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' is almost ready!');
-				} else if (obj.message == 'Lobby open') {
-					createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' is open again.');
-				} else if (obj.message.indexOf('Leadership transfered to') == 0) {
-					var user = obj.message.substring(obj.message.indexOf('to') + 3);
-					createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' leadership has been transfered to ' + (user == unsafeWindow.playerName ? 'you!' : user  + '.'));
-				} else if (obj.message.indexOf('Lobby closed') == 0) {
-					var reason = obj.message.substring(obj.message.indexOf(':')+2);
-					
-					// Reasons are:
-					// MANUAL_LEADER - signifies that the lobby was closed by the leader
-					// MATCH_ENDED - signifies that a match is complete (tf_game_over)
-					switch(reason) {
-					case 'MANUAL_LEADER':
-						createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' has been closed by the leader.');
-						break;
-					}
+			var lobbyId = $('.lobbyHeaderID').text();
+			if (obj.message == 'Lobby almost ready') {
+				createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' is almost ready!');
+			} else if (obj.message == 'Lobby open') {
+				createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' is open again.');
+			} else if (obj.message.indexOf('Leadership transfered to') == 0) {
+				var user = obj.message.substring(obj.message.indexOf('to') + 3);
+				createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' leadership has been transfered to ' + (user == unsafeWindow.playerName ? 'you!' : user  + '.'));
+			} else if (obj.message.indexOf('Lobby closed') == 0) {
+				var reason = obj.message.substring(obj.message.indexOf(':')+2);
+				
+				// Reasons are:
+				// MANUAL_LEADER - lobby was closed by the leader
+				// MANUAL_ADMIN - lobby was closed by an admin
+				// EXCESSIVE_SUBS - lobby has had too many sub requests/is missing too many players
+				// MATCH_ENDED - match is complete (tf_game_over)
+				// SERVER_UNREACHABLE - ???
+				switch(reason) {
+				case 'MANUAL_LEADER':
+					createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' has been closed by the leader.');
+					break;
+				case 'MANUAL_ADMIN':
+					createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' has been closed by an admin.');
+					break;
+				case 'EXCESSIVE_SUBS':
+					createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' has been closed due to an excessive number of players leaving.');
+					break;
 				}
 			}
 		} else if (checkForName(obj.message) && !isMySteamId(obj.authorSteamId)) {
 			// Highlighted message
-			if (notificationsEnabled) {
-				createNotification('TF2Center Message', obj.authorName + ': ' + unescapeHtml(obj.message));
-			}
+			createNotification('TF2Center Message', obj.authorName + ': ' + unescapeHtml(obj.message));
 		}
 	};
 }
