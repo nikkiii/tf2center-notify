@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name       TF2Center Notifications
-// @namespace  http://nikkii.us
+// @namespace  http://meow.tf/
 // @version    1.3
 // @author	   Nikki
 // @description  Adds ready and message notifications to TF2Center
-// @match      http://rc.tf2center.com/*
+// @match      http://tf2center.com/*
 // @copyright  2014+, Nikki
 // ==/UserScript==
 
@@ -21,12 +21,23 @@ notificationsEnabled = true;
 (function(){
 	// Immediately stop log spam
 	hookLogChange();
+	$(document).bind("tf2center.global-notification-added", function(F, H) {
+		console.log("F:", F, "H:", H);
+	});
 	if (typeof unsafeWindow.notify == 'undefined') {
 		$.getScript(NOTIFY_SCRIPT, function() {
 			startScript();
 		});
 	}
 })();
+
+function hook(funcName, callback) {
+	var c = unsafeWindow[funcName];
+	unsafeWindow[funcName] = function() {
+		c.apply(unsafeWindow, arguments);
+		callback.apply(unsafeWindow, arguments);
+	};
+}
 
 function startScript() {
 	var $nameElem = $('.playerTopName');
@@ -111,26 +122,19 @@ function hookLogChange() {
 }
 
 function hookReadyUp() {
-	var old = unsafeWindow.playReadySoundHeavy;
-	unsafeWindow.playReadySoundHeavy = function() {
-		old();
+	hook('playReadySoundHeavy', function() {
 		if (notificationsEnabled) {
 			createNotification('Ready up!', 'Lobby ' + $('.lobbyHeaderID').text() + ' is ready, ready up!');
 		}
-	};
+	});
 }
 
 function hookChatMessage() {
-	var oldChatMsg = addChatMsg;
-	unsafeWindow.addChatMsg = function(json) {
-		if (oldChatMsg) {
-			oldChatMsg(json);
-		}
-		
+	hook('addChatMsg', function(json) {
 		if (!notificationsEnabled) {
 			return;
 		}
-		
+
 		var obj = JSON.parse(json);
 		if (obj.authorSteamId == 'TF2Center' && obj.authorName == 'TF2Center') {
 			// Internal message
@@ -141,10 +145,14 @@ function hookChatMessage() {
 				createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' is open again.');
 			} else if (obj.message.indexOf('Leadership transfered to') == 0) {
 				var user = obj.message.substring(obj.message.indexOf('to') + 3);
-				createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' leadership has been transfered to ' + (user == unsafeWindow.playerName ? 'you!' : user  + '.'));
+				createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' leadership has been transfered to ' + (user == unsafeWindow.playerName ? 'you!' : user + '.'));
+			} else if (obj.message.indexOf('was kicked by') != -1) {
+				var $a = $(obj.message).find('a');
+
+
 			} else if (obj.message.indexOf('Lobby closed') == 0) {
 				var reason = obj.message.substring(obj.message.indexOf(':')+2);
-				
+
 				// Reasons are:
 				// MANUAL_LEADER - lobby was closed by the leader
 				// MANUAL_ADMIN - lobby was closed by an admin
@@ -152,22 +160,22 @@ function hookChatMessage() {
 				// MATCH_ENDED - match is complete (tf_game_over)
 				// SERVER_UNREACHABLE - ???
 				switch(reason) {
-				case 'MANUAL_LEADER':
-					createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' has been closed by the leader.');
-					break;
-				case 'MANUAL_ADMIN':
-					createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' has been closed by an admin.');
-					break;
-				case 'EXCESSIVE_SUBS':
-					createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' has been closed due to an excessive number of players leaving.');
-					break;
+					case 'MANUAL_LEADER':
+						createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' has been closed by the leader.');
+						break;
+					case 'MANUAL_ADMIN':
+						createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' has been closed by an admin.');
+						break;
+					case 'EXCESSIVE_SUBS':
+						createNotification('TF2Center Lobby', 'Lobby ' + lobbyId + ' has been closed due to an excessive number of players leaving.');
+						break;
 				}
 			}
 		} else if (checkForName(obj.message) && !isMySteamId(obj.authorSteamId)) {
 			// Highlighted message
 			createNotification('TF2Center Message', obj.authorName + ': ' + unescapeHtml(obj.message));
 		}
-	};
+	});
 }
 
 function checkForName(message) {
