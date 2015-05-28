@@ -5,10 +5,11 @@
 // @author	   Nikki
 // @description  Adds ready and message notifications to TF2Center
 // @match      http://tf2center.com/*
+// @match      https://tf2center.com/*
 // @copyright  2014+, Nikki
 // ==/UserScript==
 
-BASE_PATH = 'http://cdn.probablyaserver.com/nikki/tf2c';
+BASE_PATH = 'https://meow.tf/misc/tf2c/notify';
 NOTIFY_SCRIPT = BASE_PATH + '/desktop-notify-min.js';
 TF2C_ICON = BASE_PATH + '/tf2logo.png';
 TIMEOUT_MILLIS = 30000;
