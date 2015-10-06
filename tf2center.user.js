@@ -3,7 +3,7 @@
 // @namespace  http://meow.tf/
 // @version    1.3
 // @author	   Nikki
-// @description  Adds ready and message notifications to TF2Center
+// @description  Adds ready and message notifications to TF2Center-
 // @match      http://tf2center.com/*
 // @match      https://tf2center.com/*
 // @copyright  2014+, Nikki
@@ -16,7 +16,7 @@ TIMEOUT_MILLIS = 30000;
 
 nicknames = [ ];
 
-notificationsEnabled = true;
+notificationsEnabled = 'tf2c_notify_enabled' in localStorage ? localStorage['tf2c_notify_enabled'] : true;
 
 // Add notify
 (function(){
@@ -47,7 +47,6 @@ function startScript() {
 	}
 	// Load player name into a variable
 	unsafeWindow.playerName = $nameElem.text();
-	notificationsEnabled = GM_getValue('enabled', true);
 	// Set notify settings
 	notify.config({
 		autoClose : TIMEOUT_MILLIS
@@ -70,7 +69,7 @@ function addNotificationButton() {
 		} else {
 			notificationsEnabled = !$('#notifications').hasClass('on');
 			console.log('Changed to ' + notificationsEnabled);
-			GM_setValue('enabled', notificationsEnabled);
+			localStorage['tf2c_notify_enabled'] = notificationsEnabled;
 			notificationPermissionsChanged();
 		}
 	});
@@ -91,7 +90,7 @@ function notificationPermissionsChanged() {
 }
 
 function loadNicknames() {
-	nicknames = JSON.parse(GM_getValue('nicknames', '[]'));
+	nicknames = JSON.parse(localStorage['tf2c_notify_nicknames'] || '[]');
 	
 	if (!nicknames || !nicknames.length) {
 		promptNicknames();
@@ -109,15 +108,15 @@ function promptNicknames() {
 	for (var i = 0; i < nicknames.length; i++) {
 		nicknames[i] = nicknames[i].trim();
 	}
-	
-	GM_setValue('nicknames', JSON.stringify(nicknames));
+
+	localStorage['tf2c_notify_nicknames'] = JSON.stringify(nicknames);
 }
 
 function hookLogChange() {
 	var oldInfo = unsafeWindow.console['info'];
 	unsafeWindow.console['info'] = function(text) {
 		if (text.indexOf('response.responseBody') == -1) {
-			oldInfo(text);
+			oldInfo.apply(unsafeWindow.console, [ text ]);
 		}
 	};
 }
