@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name       TF2Center Notifications
 // @namespace  http://meow.tf/
-// @version    1.3
+// @version    1.3.1
 // @author	   Nikki
-// @description  Adds ready and message notifications to TF2Center-
+// @description  Adds ready and message notifications to TF2Center
 // @match      http://tf2center.com/*
 // @match      https://tf2center.com/*
-// @copyright  2014+, Nikki
+// @copyright  2015+, Nikki
 // ==/UserScript==
 
 BASE_PATH = 'https://cdn.probablyaserver.com/nikki/tf2c';
